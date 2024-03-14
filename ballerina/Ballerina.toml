@@ -1,8 +1,16 @@
 [package]
-org = "ayesh"
+distribution = "2201.8.6"
+org = "ballerinax"
 name = "zuora"
 version = "0.1.0"
-distribution = "2201.8.6"
+license = ["Apache-2.0"]
+authors = ["Ballerina"]
+keywords = ["Zuora", "Subscription", "Billing", "Invoicing"]
+icon = "icon.png"
+repository = "https://github.com/ballerina-platform/module-ballerinax-zuora"
 
 [build-options]
-observabilityIncluded = true
+observabilityIncluded = false
+
+[platform.java17]
+graalvmCompatible = true
