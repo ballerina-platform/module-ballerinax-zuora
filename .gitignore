@@ -8,8 +8,6 @@ target
 generated
 #Config file
 Config.toml
-# Modules
-/modules/googleapis.docusign.dsesign
 
 # BlueJ files
 *.ctxt
