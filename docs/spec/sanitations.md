@@ -2,7 +2,7 @@
 
 _Author_: @ayeshLK \
 _Created_: 2024/04/18 \
-_Updated_: 2024/04/18 \
+_Updated_: 2024/04/19 \
 _Edition_: Swan Lake
 
 ## Sanitation for OpenAPI specification
@@ -31,6 +31,7 @@ This document records the sanitation done on top of the official OpenAPI specifi
     * `CreatePaymentMethodApplePayAdyen`
     * `CreatePaymentMethodGooglePayChase`
     * `CreatePaymentMethodBetalingsservice`
+4. Introduce security schemas for OAuth2.0 and remove usage of the `GLOBAL_HEADER_Authorization_OAuth_optional` parameter from the API specification.
 
 ## OpenAPI CLI command
 
