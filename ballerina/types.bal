@@ -23,6 +23,8 @@ import ballerina/http;
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.
 @display {label: "Connection Config"}
 public type ConnectionConfig record {|
+    # Configurations related to client authentication
+    OAuth2ClientCredentialsGrantConfig auth;
     # The HTTP version understood by the client
     http:HttpVersion httpVersion = http:HTTP_2_0;
     # Configurations related to HTTP/1.x protocol
@@ -74,6 +76,13 @@ public type ProxyConfig record {|
     # Proxy server password
     @display {label: "", kind: "password"}
     string password = "";
+|};
+
+# OAuth2 Client Credentials Grant Configs
+public type OAuth2ClientCredentialsGrantConfig record {|
+    *http:OAuth2ClientCredentialsGrantConfig;
+    # Token URL
+    string tokenUrl = "/oauth/token";
 |};
 
 public type SaveResultArr SaveResult[];
