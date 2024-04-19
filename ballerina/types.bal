@@ -82,7 +82,7 @@ public type ProxyConfig record {|
 public type OAuth2ClientCredentialsGrantConfig record {|
     *http:OAuth2ClientCredentialsGrantConfig;
     # Token URL
-    string tokenUrl = "/oauth/token";
+    string tokenUrl = "https://rest.zuora.com/oauth/token";
 |};
 
 public type SaveResultArr SaveResult[];
