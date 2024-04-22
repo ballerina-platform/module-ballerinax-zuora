@@ -1,4 +1,4 @@
-# Sanitation: Ballerina Zuoro connector
+# Sanitation: Ballerina Zuora connector
 
 _Author_: @ayeshLK \
 _Created_: 2024/04/18 \
@@ -30,13 +30,17 @@ This document records the sanitation done on top of the official OpenAPI specifi
     * `CreatePaymentMethodGooglePayChase`
     * `CreatePaymentMethodGooglePayAdyen`
     * `CreatePaymentMethodBetalingsservice`
+4. Use `--nullable` option when generating the client using the Ballerina OpenAPI tool.
+   * The Zuora OpenAPI specification has not properly included the "nullable" property for some request and response schemas.
+   * Therefore, the `--nullable` option is used as a precaution to avoid potential data-binding issues in the runtime, which will generate all the request/response type fields with the support to handle null values.
+   * This workaround can be removed once [https://github.com/ballerina-platform/ballerina-library/issues/4870](https://github.com/ballerina-platform/ballerina-library/issues/4870) is addressed.
 
 ## OpenAPI CLI command
 
 The following command was used to generate the Ballerina client from the OpenAPI specification. The command should be executed from the repository root directory.
 
 ```bash
-JAVA_OPTS="$JAVA_OPTS -DmaxYamlCodePoints=99999999" bal openapi -i docs/spec/openapi.yml --mode client --license docs/license.txt -o ballerina
+JAVA_OPTS="$JAVA_OPTS -DmaxYamlCodePoints=99999999" bal openapi -i docs/spec/openapi.yml --mode client --license docs/license.txt -o ballerina --nullable
 ```
 
 Note: The license year is hardcoded to 2024, change if necessary.
