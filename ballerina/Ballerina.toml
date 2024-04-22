@@ -9,8 +9,8 @@ keywords = ["Zuora", "Subscription", "Billing", "Invoicing"]
 icon = "icon.png"
 repository = "https://github.com/ballerina-platform/module-ballerinax-zuora"
 
-# [build-options]
-# observabilityIncluded = false
+[build-options]
+observabilityIncluded = false
 
 [platform.java17]
 graalvmCompatible = true
