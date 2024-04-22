@@ -34,6 +34,7 @@ This document records the sanitation done on top of the official OpenAPI specifi
    * The Zuora OpenAPI specification has not properly included the "nullable" property for some request and response schemas.
    * Therefore, the `--nullable` option is used as a precaution to avoid potential data-binding issues in the runtime, which will generate all the request/response type fields with the support to handle null values.
    * This workaround can be removed once [https://github.com/ballerina-platform/ballerina-library/issues/4870](https://github.com/ballerina-platform/ballerina-library/issues/4870) is addressed.
+5. Introduce security scheme for OAuth2.0.
 
 ## OpenAPI CLI command
 
