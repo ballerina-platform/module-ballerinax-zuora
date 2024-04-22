@@ -28,11 +28,6 @@ import ballerina/mime;
 # 
 # To learn about the common use cases of Zuora REST APIs, check out the [REST API Tutorials](https://developer.zuora.com/rest-api/api-guides/overview/).
 # 
-# In addition to Zuora API Reference, we also provide API references for other Zuora products:
-# 
-#   * [Revenue API Reference](https://developer.zuora.com/api-references/revenue/overview/)
-#   * [Collections API Reference](https://developer.zuora.com/api-references/collections/overview/)
-# 
 #     
 # The Zuora REST API provides a broad set of operations and resources that:
 # 
@@ -46,27 +41,21 @@ import ballerina/mime;
 # Some of our older APIs are no longer recommended but still available, not affecting any existing integration. To find related API documentation, see [Older API Reference](https://developer.zuora.com/api-references/older-api/overview/).
 # 
 # 
-# ## Access to the API
+# # Base URL
 # 
-# If you have a Zuora tenant, you can access the Zuora REST API via one of the following endpoints:
+# All API requests occur in a test or production environment.  For details on Zuora’s environments, see <a href="https://knowledgecenter.zuora.com/Zuora_Environments" target="_blank">Zuora Environments</a> in the Knowledge Center. 
+# Each environment uses a different base URL. Select the appropriate base URL below that you need to use:
 # 
-# | Tenant              | Base URL for REST Endpoints |
-# |-------------------------|-------------------------|
-# |US Cloud 1 Production | https://rest.na.zuora.com  |
-# |US Cloud 1 API Sandbox |  https://rest.sandbox.na.zuora.com |
-# |US Cloud 2 Production | https://rest.zuora.com |
-# |US Cloud 2 API Sandbox | https://rest.apisandbox.zuora.com|
-# |US Central Sandbox | https://rest.test.zuora.com |  
-# |US Performance Test | https://rest.pt1.zuora.com |
-# |US Production Copy | Submit a request at <a href="http://support.zuora.com/" target="_blank">Zuora Global Support</a> to enable the Zuora REST API in your tenant and obtain the base URL for REST endpoints. See [REST endpoint base URL of Production Copy (Service) Environment for existing and new customers](https://community.zuora.com/t5/API/REST-endpoint-base-URL-of-Production-Copy-Service-Environment/td-p/29611) for more information. |
-# |EU Production | https://rest.eu.zuora.com |
+# | Environment              | Base URL    |
+# |:-----------------------|:-----------------------|
+# |US Developer & Central Sandbox <p>_Applicable for Test Drive and trial access_</p> | https://rest.test.zuora.com |
+# |US API Sandbox | https://rest.sandbox.na.zuora.com (Cloud 1) <br /> https://rest.apisandbox.zuora.com (Cloud 2)|
+# |US Production | https://rest.na.zuora.com (Cloud 1) <br /> https://rest.zuora.com (Cloud 2)|
+# |EU Developer & Central Sandbox | https://rest.test.eu.zuora.com |
 # |EU API Sandbox | https://rest.sandbox.eu.zuora.com |
-# |EU Central Sandbox | https://rest.test.eu.zuora.com |
+# |EU Production | https://rest.eu.zuora.com |
 # 
-# The Production endpoint provides access to your live user data. Sandbox tenants are a good place to test code without affecting real-world data. If you would like Zuora to provision a Sandbox tenant for you, contact your Zuora representative for assistance.
-# 
-# 
-# If you do not have a Zuora tenant, go to <a href="https://www.zuora.com/resource/zuora-test-drive" target="_blank">https://www.zuora.com/resource/zuora-test-drive</a> and sign up for a Production Test Drive tenant. The tenant comes with seed data, including a sample product catalog.
+# If you do not have a Zuora tenant, go to <a href="https://www.zuora.com/resource/zuora-test-drive" target="_blank">https://www.zuora.com/resource/zuora-test-drive</a> and sign up for a Test Drive.
 # 
 # 
 # # Error Handling
@@ -364,7 +353,7 @@ public isolated client class Client {
     # + config - The configurations to be used when initializing the `connector` 
     # + serviceUrl - URL of the target service 
     # + return - An error if connector initialization failed 
-    public isolated function init(ConnectionConfig config =  {}, string serviceUrl = "https://rest.zuora.com") returns error? {
+    public isolated function init(ConnectionConfig config =  {}, string serviceUrl = "https://rest.test.zuora.com") returns error? {
         http:ClientConfiguration httpClientConfig = {httpVersion: config.httpVersion, timeout: config.timeout, forwarded: config.forwarded, poolConfig: config.poolConfig, compression: config.compression, circuitBreaker: config.circuitBreaker, retryConfig: config.retryConfig, validation: config.validation};
         do {
             if config.http1Settings is ClientHttp1Settings {
@@ -1434,6 +1423,51 @@ public isolated client class Client {
         map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
         GETAccountPaymentMethodType response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Retrieve configuration of cascading payment methods for an account
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + accountKey - Account ID.
+    resource isolated function get v1/accounts/[string accountKey]/payment\-methods/cascading(string? acceptEncoding = (), string? contentEncoding = (), string? authorization = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = ()) returns GetCascadingPaymentMethodsConfigurationResponse|error {
+        string resourcePath = string `/v1/accounts/${getEncodedUri(accountKey)}/payment-methods/cascading`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        GetCascadingPaymentMethodsConfigurationResponse response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Configure cascading payment methods for an account
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + accountKey - Account ID.
+    resource isolated function put v1/accounts/[string accountKey]/payment\-methods/cascading(PutCascadingPaymentMethodsConfigurationRequest payload, string? acceptEncoding = (), string? contentEncoding = (), string? authorization = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = ()) returns CommonResponse|error {
+        string resourcePath = string `/v1/accounts/${getEncodedUri(accountKey)}/payment-methods/cascading`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        CommonResponse response = check self.clientEp->put(resourcePath, request, httpHeaders);
         return response;
     }
     # Retrieve the default payment method of an account
@@ -2520,6 +2554,34 @@ public isolated client class Client {
         json jsonBody = payload.toJson();
         request.setPayload(jsonBody, "application/json");
         POSTSubscriptionPreviewResponseType response = check self.clientEp->post(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # Preview a subscription by subscription key
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraVersion -
+    # The minor version of the Zuora REST API. 
+    # You need to set this parameter if you use the following fields:
+    # * targetDate
+    # * includeExistingDraftDocItems
+    # * previewType
+    # * taxationItems
+    # If you have the Invoice Settlement feature enabled, you need to specify this parameter. Otherwise, an error is returned.
+    # + subscriptionKey - Subscription number or ID
+    resource isolated function post v1/subscriptions/[string subscriptionKey]/preview(PreviewExistingSubscriptionRequest payload, string? acceptEncoding = (), string? contentEncoding = (), string? authorization = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraVersion = ()) returns PreviewExistingSubscriptionResponse|error {
+        string resourcePath = string `/v1/subscriptions/${getEncodedUri(subscriptionKey)}/preview`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "zuora-version": zuoraVersion};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        PreviewExistingSubscriptionResponse response = check self.clientEp->post(resourcePath, request, httpHeaders);
         return response;
     }
     # Create a subscription
@@ -6068,6 +6130,45 @@ public isolated client class Client {
         map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
         GetOperationJobResponseType response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Export bulk PDF files
+    #
+    # + idempotencyKey - Specify a unique idempotency key if you want to perform an idempotent POST or PATCH request. Do not use this header in other request types. 
+    # With this header specified, the Zuora server can identify subsequent retries of the same request using this value, which prevents the same operation from being performed multiple times by accident. 
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    resource isolated function post v1/operations/bulk\-pdf(POSTBulkPdfGenerationJobRequestType payload, string? idempotencyKey = (), string? acceptEncoding = (), string? contentEncoding = (), string? authorization = (), string? zuoraTrackId = (), string? zuoraEntityIds = ()) returns POSTBulkPdfGenerationJobResponseType|error {
+        string resourcePath = string `/v1/operations/bulk-pdf`;
+        map<any> headerValues = {"Idempotency-Key": idempotencyKey, "Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        POSTBulkPdfGenerationJobResponseType response = check self.clientEp->post(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # Retrieve information of a bulk PDF file generation job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + jobId - The ID of the job for which information needs to be retrieved. For example, 2c92c8955bd63cc1015bd7c151af02ab
+    # + return - OK 
+    resource isolated function get v1/operations/bulk\-pdf/[string jobId](string? acceptEncoding = (), string? contentEncoding = (), string? authorization = (), string? zuoraTrackId = (), string? zuoraEntityIds = ()) returns GETBulkpdfGenerationJobResponseType|error {
+        string resourcePath = string `/v1/operations/bulk-pdf/${getEncodedUri(jobId)}`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        GETBulkpdfGenerationJobResponseType response = check self.clientEp->get(resourcePath, httpHeaders);
         return response;
     }
     # Create a bill run
@@ -14210,8 +14311,8 @@ public isolated client class Client {
     # + subscriptionNumber - The subcription number.
     # + mode - The generation mode.
     # + forRevenueRecollect - Indicates whether the data regenerated is for Zuora Revenue to recollect.
-    resource isolated function post v1/rev\-rec\-events(string authorization, string? idempotencyKey = (), string? acceptEncoding = (), string? contentEncoding = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? subscriptionNumber = (), "Incremental"|"Full" mode = "Incremental", boolean? forRevenueRecollect = ()) returns RegenerateRevRecEventsResponse|error {
-        string resourcePath = string `/v1/rev-rec-events`;
+    resource isolated function post v1/uno\-regenerate/rev\-rec\-events(string authorization, string? idempotencyKey = (), string? acceptEncoding = (), string? contentEncoding = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? subscriptionNumber = (), "Incremental"|"Full" mode = "Incremental", boolean? forRevenueRecollect = ()) returns RegenerateRevRecEventsResponse|error {
+        string resourcePath = string `/v1/uno-regenerate/rev-rec-events`;
         map<anydata> queryParam = {"subscriptionNumber": subscriptionNumber, "mode": mode, "forRevenueRecollect": forRevenueRecollect};
         resourcePath = resourcePath + check getPathForQueryParam(queryParam);
         map<any> headerValues = {"Idempotency-Key": idempotencyKey, "Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
@@ -14236,8 +14337,8 @@ public isolated client class Client {
     # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
     # If the header is not set, the operation is performed in scope of the user's accessible orgs.
     # + forRevenueRecollect - Indicates whether the data regenerated is for Zuora Revenue to recollect.
-    resource isolated function post v1/rev\-rec\-events/daily\-consumption(string authorization, DailyConsumptionRevRecRequest payload, string? idempotencyKey = (), string? acceptEncoding = (), string? contentEncoding = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), boolean? forRevenueRecollect = ()) returns RegenerateRevRecEventsResponse|error {
-        string resourcePath = string `/v1/rev-rec-events/daily-consumption`;
+    resource isolated function post v1/uno\-regenerate/rev\-rec\-events/daily\-consumption(string authorization, DailyConsumptionRevRecRequest payload, string? idempotencyKey = (), string? acceptEncoding = (), string? contentEncoding = (), string? zuoraTrackId = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), boolean? forRevenueRecollect = ()) returns RegenerateRevRecEventsResponse|error {
+        string resourcePath = string `/v1/uno-regenerate/rev-rec-events/daily-consumption`;
         map<anydata> queryParam = {"forRevenueRecollect": forRevenueRecollect};
         resourcePath = resourcePath + check getPathForQueryParam(queryParam);
         map<any> headerValues = {"Idempotency-Key": idempotencyKey, "Accept-Encoding": acceptEncoding, "Content-Encoding": contentEncoding, "Authorization": authorization, "Zuora-Track-Id": zuoraTrackId, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds};
@@ -14246,6 +14347,177 @@ public isolated client class Client {
         json jsonBody = payload.toJson();
         request.setPayload(jsonBody, "application/json");
         RegenerateRevRecEventsResponse response = check self.clientEp->post(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # List all booking date backfill jobs
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    resource isolated function get v1/uno/data\-backfill/bookingdate/jobs(string authorization, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns Inline_response_200_8|error {
+        string resourcePath = string `/v1/uno/data-backfill/bookingdate/jobs`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        Inline_response_200_8 response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Create a booking date backfill job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + idempotencyKey - Specify a unique idempotency key if you want to perform an idempotent POST or PATCH request. Do not use this header in other request types. 
+    # With this header specified, the Zuora server can identify subsequent retries of the same request using this value, which prevents the same operation from being performed multiple times by accident. 
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    resource isolated function post v1/uno/data\-backfill/bookingdate/jobs(string authorization, string? acceptEncoding = (), string? contentEncoding = (), string? idempotencyKey = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns Inline_response_200_9|error {
+        string resourcePath = string `/v1/uno/data-backfill/bookingdate/jobs`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Idempotency-Key": idempotencyKey, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        Inline_response_200_9 response = check self.clientEp->post(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # Retrieve a booking date backfill job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + jobId - ID of the job to retrieve
+    resource isolated function get v1/uno/data\-backfill/bookingdate/jobs/[string jobId](string authorization, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns Inline_response_200_10|error {
+        string resourcePath = string `/v1/uno/data-backfill/bookingdate/jobs/${getEncodedUri(jobId)}`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        Inline_response_200_10 response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Stop a booking date backfill job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + jobId - ID of the job to stop
+    resource isolated function put v1/uno/data\-backfill/bookingdate/jobs/[string jobId](string authorization, Jobs_jobId_body payload, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns CommonResponse|error {
+        string resourcePath = string `/v1/uno/data-backfill/bookingdate/jobs/${getEncodedUri(jobId)}`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        CommonResponse response = check self.clientEp->put(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # Create a data backfill job
+    #
+    resource isolated function post v1/uno/data\-backfill/jobs(Databackfill_jobs_body payload) returns Inline_response_200_11|error {
+        string resourcePath = string `/v1/uno/data-backfill/jobs`;
+        http:Request request = new;
+        mime:Entity[] bodyParts = check createBodyParts(payload);
+        request.setBodyParts(bodyParts);
+        Inline_response_200_11 response = check self.clientEp->post(resourcePath, request);
+        return response;
+    }
+    # Retrieve a data backfill job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + jobId - ID of the job to retrieve
+    resource isolated function get v1/uno/data\-backfill/jobs/[string jobId](string authorization, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns Inline_response_200_12|error {
+        string resourcePath = string `/v1/uno/data-backfill/jobs/${getEncodedUri(jobId)}`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        Inline_response_200_12 response = check self.clientEp->get(resourcePath, httpHeaders);
+        return response;
+    }
+    # Stop a data backfill job
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + jobId - ID of the job to stop
+    resource isolated function put v1/uno/data\-backfill/jobs/[string jobId](string authorization, Jobs_jobId_body_1 payload, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns CommonResponse|error {
+        string resourcePath = string `/v1/uno/data-backfill/jobs/${getEncodedUri(jobId)}`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        http:Request request = new;
+        json jsonBody = payload.toJson();
+        request.setPayload(jsonBody, "application/json");
+        CommonResponse response = check self.clientEp->put(resourcePath, request, httpHeaders);
+        return response;
+    }
+    # List all data backfill jobs
+    #
+    resource isolated function get v1/uno/data\-backfill/listjobs() returns Inline_response_200_13|error {
+        string resourcePath = string `/v1/uno/data-backfill/listjobs`;
+        Inline_response_200_13 response = check self.clientEp->get(resourcePath);
+        return response;
+    }
+    # Download a data backfill template file
+    #
+    # + acceptEncoding - Include the `Accept-Encoding: gzip` header to compress responses as a gzipped file. It can significantly reduce the bandwidth required for a response. 
+    # If specified, Zuora automatically compresses responses that contain over 1000 bytes of data, and the response contains a `Content-Encoding` header with the compression algorithm so that your client can decompress it.
+    # + authorization - The value is in the `Bearer {token}` format where {token} is a valid OAuth token generated by calling [Create an OAuth token](https://developer.zuora.com/api-references/api/operation/createToken).
+    # + contentEncoding - Include the `Content-Encoding: gzip` header to compress a request. With this header specified, you should upload a gzipped file for the request payload instead of sending the JSON payload.
+    # + zuoraEntityIds - An entity ID. If you have [Zuora Multi-entity](https://knowledgecenter.zuora.com/BB_Introducing_Z_Business/Multi-entity) enabled and the OAuth token is valid for more than one entity, you must use this header to specify which entity to perform the operation in. If the OAuth token is only valid for a single entity, or you do not have Zuora Multi-entity enabled, you do not need to set this header.
+    # + zuoraOrgIds - Comma separated IDs. If you have <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Multi-Org" target="_blank">Zuora Multi-Org</a> enabled, 
+    # you can use this header to specify which orgs to perform the operation in. If you do not have Zuora Multi-Org enabled, you should not set this header.
+    # The IDs must be a sub-set of the user's accessible orgs. If you specify an org that the user does not have access to, the operation fails.
+    # If the header is not set, the operation is performed in scope of the user's accessible orgs.
+    # + zuoraTrackId - A custom identifier for tracing the API call. If you set a value for this header, Zuora returns the same value in the response headers. This header enables you to associate your system process identifiers with Zuora API calls, to assist with troubleshooting in the event of an issue.
+    # The value of this field must use the US-ASCII character set and must not include any of the following characters: colon (`:`), semicolon (`;`), double quote (`"`), and quote (`'`).
+    # + 'type - Type of the template file that you want to download for data backfill
+    resource isolated function get v1/uno/back\-fill/jobs/[DataBackfillJobType 'type]/template(string authorization, string? acceptEncoding = (), string? contentEncoding = (), string? zuoraEntityIds = (), string? zuoraOrgIds = (), string? zuoraTrackId = ()) returns string|error {
+        string resourcePath = string `/v1/uno/back-fill/jobs/${getEncodedUri('type)}/template`;
+        map<any> headerValues = {"Accept-Encoding": acceptEncoding, "Authorization": authorization, "Content-Encoding": contentEncoding, "Zuora-Entity-Ids": zuoraEntityIds, "Zuora-Org-Ids": zuoraOrgIds, "Zuora-Track-Id": zuoraTrackId};
+        map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
+        string response = check self.clientEp->get(resourcePath, httpHeaders);
         return response;
     }
     # Create

@@ -37,14 +37,11 @@ version = "1.5.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
-modules = [
-	{org = "ballerina", packageName = "constraint", moduleName = "constraint"}
-]
 
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.5.0"
+version = "2.6.2"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
@@ -282,7 +279,6 @@ org = "ballerinax"
 name = "zuora"
 version = "0.1.0"
 dependencies = [
-	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "url"}
