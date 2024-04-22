@@ -385,6 +385,25 @@ public type PaymentScheduleCustomFields record {
 public type SignUpPaymentMethodObjectCustomFields record {
 };
 
+public type PreviewExistingSubscriptionResultCreditMemos record {
+    # The credit memo number.
+    string creditMemoNumber?;
+    # Credit memo amount.
+    decimal amount?;
+    # Credit memo amount minus tax.
+    decimal amountWithoutTax?;
+    # The tax amount of the credit memo.
+    decimal taxAmount?;
+    # Date through which to calculate charges if a credit memo is generated, as yyyy-mm-dd.
+    string targetDate?;
+    # Container for credit memo items.
+    PreviewExistingSubscriptionCreditMemoItemResult[] creditMemoItems?;
+    # The status of the credit memo.
+    string status?;
+    # Indicates whether the credit memo information is from an existing credit memo.
+    boolean isFromExistingCreditMemo?;
+};
+
 public type ListAllCatalogGroupsResponse record {
     # The list of catalog groups that are retrieved..
     CatalogGroupResponse[] catalogGroups?;
@@ -622,6 +641,12 @@ public type GETListApplePayDomainsResponse record {
     # Indicates whether this call succeeds.
     boolean success?;
 };
+
+# The options on how the preview through date is calculated. 
+# - If you set this field to `nextBillingPeriods`, you must specify the number of billing periods to preview in the `nextBillingPeriods` field.
+# - If you set this field to `endOfTerm`, the preview through date is the end date of the subscription term.
+# - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.
+public type PreviewThruDatePolicy "nextBillingPeriods"|"endOfTerm"|"specificDate";
 
 public type CreatePaymentMethodCreditCard record {
     # Container for cardholder information. The nested `cardHolderName` field is required.
@@ -2682,6 +2707,12 @@ public type PUTSequenceSetResponse record {
     boolean success?;
 };
 
+# The options on how the preview start date is calculated.
+# - If you set this field to `startOfTerm`, the preview start date is the start date of the subscription term.   
+# - If you set this field to `today`, the preview start date is today.
+# - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.
+public type PreviewStartDatePolicy "startOfTerm"|"today"|"specificDate";
+
 public type CreatePaymentMethodACH record {
     # First address line, 255 characters or less.
     string addressLine1?;
@@ -3539,6 +3570,9 @@ public type CreditMemoFile record {
     int versionNumber?;
 };
 
+# The status of the data backfill job
+public type DataBackfillJobStatus "Pending"|"Processing"|"Completed"|"Canceled"|"Failed"|"Stopping"|"Stopped";
+
 # Container for e-invoicing profile information for this account.
 # 
 # **Note**: This field is available only if you have the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/E-Invoicing" target="_blank">E-Invoicing</a> feature in **Early Adopter** phase enabled.
@@ -3701,8 +3735,6 @@ public type OrderActionRatePlanChargeOverride_pricing record {
     # Pricing information about a one-time charge that uses the "volume pricing" charge model. In this charge model, the charge has a variable price per unit, depending on how many units are purchased.
     OrderActionRatePlanOneTimeVolumePricingOverride oneTimeVolume?;
     # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at <a href="http://support.zuora.com/"target="_blank">Zuora Global Support</a>.
     OrderActionRatePlanRecurringDeliveryPricingOverride recurringDelivery?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     OrderActionRatePlanRecurringFlatFeePricingOverride recurringFlatFee?;
@@ -3780,6 +3812,14 @@ public type DataQueryJob record {
     "submitted"|"accepted"|"in_progress"|"completed"|"failed"|"cancelled" queryStatus?;
 };
 
+public type Inline_response_200_9 record {
+    *CommonResponse;
+    # String of 32 characters that identifies the booking date backfill job. 
+    # The id is generated before the backfill job is processed. 
+    # You can use the id to get the booking date backfill job result.
+    string jobId?;
+};
+
 public type Inline_response_200_7 record {
     # ID of the migration process.
     string id?;
@@ -3797,6 +3837,11 @@ public type Inline_response_200_7 record {
     Inline_response_200_7_succeeded[] succeeded?;
     Inline_response_200_7_failed[] failed?;
     Inline_response_200_7_skipped[] skipped?;
+};
+
+public type Inline_response_200_8 record {
+    *CommonResponse;
+    GETBookingDateJobResponse[] jobs?;
 };
 
 public type ProxyCreateProductRatePlanCharge record {
@@ -5383,6 +5428,8 @@ public type GETPublicEmailTemplateResponse record {
     # 
     # User can also embed html tags if `isHtml` is `true`.
     string emailBody?;
+    # Container for custom email headers. Each custom email header consists of a header name and a header value.
+    record {|string...;|} emailHeaders?;
     # The email subject. You can add merge fields in the email subject using angle brackets or double curly brackets. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Events_and_Notifications/Create_Email_Templates/A_Merge_field_syntax_for_email_templates" target="_blank">Merge field syntax for email templates</a>.
     string emailSubject?;
     # The endcode type of the email body.
@@ -6008,8 +6055,6 @@ public type PaymentInvoiceApplicationApplyRequestType record {
 };
 
 # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-# 
-# **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
 public type RecurringDeliveryPricingOverride record {
     *PriceChangeParams;
     DeliveryScheduleParams deliverySchedule?;
@@ -6942,6 +6987,31 @@ public type EventType record {
     string name;
 };
 
+public type GETBookingDateJobResponse record {
+    # Job ID
+    string id?;
+    # The created-on date in the `int64` format
+    int createdOn?;
+    # The created-on date in the `datetime` format
+    string createdOnReadable?;
+    # The updated-on date in the `int64` format
+    int updatedOn?;
+    # The updated-on date in the `datetime` format
+    string updatedOnReadable?;
+    # The user who performs the booking date backfill job
+    string updatedByUsername?;
+    # The status of the booking date backfill job
+    "ACCEPTED"|"PROCESSING"|"COMPLETED"|"FAILED"|"STOPPED" status?;
+    # The batch count sent for execution
+    int:Signed32 batchSentCount?;
+    # The finished batch count
+    int:Signed32 batchFinishedCount?;
+    # The failed record count
+    int:Signed32 errorCount?;
+    # The progress of the booking date backfill job
+    string progress?;
+};
+
 # Container for cardholder information. The nested `cardHolderName` field is required.
 public type CreatePaymentMethodCardholderInfo record {
     # First address line, 255 characters or less.
@@ -7761,11 +7831,11 @@ public type PUTAccountTypeBillToContact record {
     # Fax phone number, 40 characters or less.
     string fax?;
     # First name, 100 characters or less.
-    string firstName;
+    string firstName?;
     # Home phone number, 40 characters or less.
     string homePhone?;
     # Last name, 100 characters or less.
-    string lastName;
+    string lastName?;
     # Mobile phone number, 40 characters or less.
     string mobilePhone?;
     # Nickname for this contact
@@ -7959,6 +8029,11 @@ public type DataQueryJobCommon record {
 public type RefundObjectCustomFields record {
 };
 
+public type Jobs_jobId_body_1 record {
+    # `Stopping` is currently the only allowed value.
+    "Stopping" status;
+};
+
 public type ExpandedPrepaidBalanceTransaction record {|
     # The unique identifier of the prepaid balance transaction.
     string id?;
@@ -8137,6 +8212,12 @@ public type UpdateEInvoicingBusinessRegionRequest record {
     string phoneNumber?;
     # The short code that can identify the business address.
     string postalCode?;
+    # Container for e-invoicing response field mappings that map values from Sovos response data to fields on the EInvoiceData object in Zuora. Each response field mapping consists of a field name and a field path.
+    # 
+    # Note that this field is applicable only to the Sovos service provider.
+    # 
+    # For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/E-Invoicing/B_Configure_the_E-Invoicing_feature/Configure_e-invoicing_response_field_mappings" target="_blank">Configure e-invoicing response field mappings</a>.
+    record {|string...;|} responseMapping?;
     # The unique ID of the e-invoicing service provider that is associated to the business region.
     string serviceProviderId?;
     # The name of the state or province where the business is located.
@@ -10396,6 +10477,16 @@ public type SignUpCreatePaymentMethodCreditCardReferenceTransaction record {
     string tokenId?;
 };
 
+public type PreviewExistingSubscriptionResponse record {
+    *CommonResponse;
+    # Container for invoices.
+    PreviewExistingSubscriptionResultInvoices[] invoices?;
+    # Container for credit memos.
+    # 
+    # **Note**: This field is only available if you have the Invoice Settlement feature enabled.
+    PreviewExistingSubscriptionResultCreditMemos[] creditMemos?;
+};
+
 public type GetInvoiceApplicationPartCollectionType record {
     # Container for application parts.
     GetInvoiceApplicationPartType[] applicationParts?;
@@ -10508,6 +10599,16 @@ public type POSTRegisterApplePayDomainRequest record {
 
 # Container for custom fields of a Rate Plan Charge object.
 public type RatePlanChargeObjectCustomFields record {
+};
+
+public type GetCascadingPaymentMethodsConfigurationResponse_priorities record {
+    # The ID of a payment method.
+    string paymentMethodId?;
+    # The order of the payment method in the priority list. For example, `1` indicates the payment method is the first one in the priority list, and `2` indicates it is the second.
+    # 
+    # The first payment method in the priority list is the default payment method of the customer account.
+    @constraint:Int {minValue: 1}
+    int 'order?;
 };
 
 public type DailyConsumptionRevRecRequest record {
@@ -11535,6 +11636,15 @@ public type POSTRSASignatureResponseType record {
     string token?;
 };
 
+public type GetCascadingPaymentMethodsConfigurationResponse record {
+    # `true` indicates the consent from your customer to use the Cascading Payment Method feature was collected. `false` indicates the consent was not collected and the Cascading Payment Method feature is not enabled.
+    boolean consent?;
+    # Container for the priority configuration of payment methods. 
+    GetCascadingPaymentMethodsConfigurationResponse_priorities[] priorities?;
+    # Indicates whether the call succeeded.
+    boolean success?;
+};
+
 public type PostBatchInvoicesType record {
     # Container for standalone invoices.
     PostInvoiceType[] invoices?;
@@ -11609,6 +11719,17 @@ public type CreatePaymentMethodGooglePayChase record {
     # This field is specific for setting up Google Pay on Chase gateway integrations to specify the stringified Google Pay token. For more information, see [Set up Google Pay on Chase](https://knowledgecenter.zuora.com/Billing/Billing_and_Payments/L_Payment_Methods/Payment_Method_Types/Set_up_Google_Pay_on_Chase).
     string googlePaymentToken?;
     *PaymentMethodCommonFields;
+};
+
+# The start date of the preview.
+public type PreviewStartDate record {
+    # The options on how the preview start date is calculated.
+    # - If you set this field to `startOfTerm`, the preview start date is the start date of the subscription term.   
+    # - If you set this field to `today`, the preview start date is today.
+    # - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.
+    PreviewStartDatePolicy previewStartDatePolicy?;
+    # The specific date for the preview start date. Required if `previewStartDatePolicy` is `specificDate`.
+    string specificDate?;
 };
 
 # The array of data for each Invoice if you want to collect payment for particular items through one payment method. The grouped items are sent as one data record.  This field is available if the [Invoice Item Settlement](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Adjust_invoice_amounts/Invoice_Settlement/Invoice_Item_Settlement/Overview_of_Invoice_Item_Settlement) permission is enabled.
@@ -12307,7 +12428,7 @@ public type OrderActionRatePlanChargeRemove record {
 # Charge associated with a rate plan.
 public type OrderActionRatePlanChargeOverride record {
     # Billing information about the charge.
-    PreviewOrderChargeOverride_billing billing?;
+    OrderActionRatePlanChargeOverride_billing billing?;
     # Charge number of the charge. For example, C-00000307.
     # 
     # If you do not set this field, Zuora will generate the charge number.
@@ -12738,6 +12859,9 @@ public type GETJournalEntryDetailTypeWithoutSuccess record {
     *JournalEntryObjectCustomFields;
 };
 
+# The data backfill job type
+public type DataBackfillJobType "ProductRatePlanCharge"|"RatePlanCharge"|"InvoiceDetail"|"MemoDetail"|"InvoiceItemAdjustment";
+
 public type PostRefundType record {
     # Comments about the refund.
     @constraint:String {maxLength: 255}
@@ -12980,6 +13104,12 @@ public type CreateEInvoicingBusinessRegionRequest record {
     string phoneNumber?;
     # The short code that can identify the business address.
     string postalCode?;
+    # Container for e-invoicing response field mappings that map values from Sovos response data to fields on the EInvoiceData object in Zuora. Each response field mapping consists of a field name and a field path.
+    # 
+    # Note that this field is applicable only to the Sovos service provider.
+    # 
+    # For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/E-Invoicing/B_Configure_the_E-Invoicing_feature/Configure_e-invoicing_response_field_mappings" target="_blank">Configure e-invoicing response field mappings</a>.
+    record {|string...;|} responseMapping?;
     # The unique ID of the e-invoicing service provider that is associated to the business region.
     string serviceProviderId?;
     # The name of the state or province where the business is located.
@@ -13459,8 +13589,6 @@ public type SubmitBatchQueryResponse record {
     # Indicates the source this aggregate query runs against:
     # 
     # * `LIVE` represents the live transactional databases at Zuora (Data Query Live).
-    # 
-    # * `WAREHOUSE` represents Zuora Warehouse, which has better performance and fewer limitations than the live transactional database. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Zuora_Warehouse/A_Zuora_Warehouse_overview" target="_blank">Zuora Warehouse</a>.
     string sourceData?;
     # The status of the AQuA job:
     # - submitted: The AQuA job was submitted to the query executor for processing.
@@ -13747,8 +13875,6 @@ public type GETSubscriptionRatePlanChargesType record {
     # Number of deliveries in the billing period for the charge segment.
     # 
     # The `numberOfDeliveries` is used for the Delivery Pricing charge model only. 
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
     decimal numberOfDeliveries?;
     # Specifies the number of periods to use when calculating charges in an overage smoothing charge model.
     int numberOfPeriods?;
@@ -14291,7 +14417,6 @@ public type PricingUpdate record {
     # Pricing information about a discount charge.
     DiscountPricingUpdate discount?;
     # Pricing information about a recurring charge that uses the "delivery" charge model. This field is only available if you have the Delivery Pricing charge model enabled.
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
     RecurringDeliveryPricingUpdate recurringDelivery?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     RecurringFlatFeePricingUpdate recurringFlatFee?;
@@ -14321,8 +14446,6 @@ public type OrderActionRatePlanPricingUpdate record {
     # Pricing information about a discount charge.
     OrderActionRatePlanDiscountPricingUpdate discount?;
     # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at <a href="http://support.zuora.com/" target="_blank">Zuora Global Support</a>.
     OrderActionRatePlanRecurringDeliveryPricingUpdate recurringDelivery?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     OrderActionRatePlanRecurringFlatFeePricingUpdate recurringFlatFee?;
@@ -14854,8 +14977,18 @@ public type CreateEInvoicingServiceProviderRequest record {
     # Whether the e-invoicing service provider's configuration is intended for testing. 
     # 
     # - If you set this field to `true`, requests are directed to the testing integration endpoints.
-    # If you set this field to `false`, requests are directed to the production integration endpoints.
+    # - If you set this field to `false`, requests are directed to the production integration endpoints.
     boolean test?;
+    # The API key is used to authenticate the e-invoicing service provider's requests. This field is required for configuring Sovos as the service provider.
+    string apiKey?;
+    # The secret key is used to authenticate the e-invoicing service provider's requests. This field is required for configuring Sovos as the service provider.
+    string secretKey?;
+    # The client certificate is used to authenticate the e-invoicing service provider's requests, which should be in base64 encoded format. This field is required for configuring Sovos as the service provider.
+    string clientCertificate?;
+    # The client certificate type is used to specify the type of the client certificate. This field is required for configuring Sovos as the service provider.
+    string clientCertificateType = "PKCS12";
+    # The client certificate password is the password to protect the client certificate. This field is required for configuring Sovos as the service provider.
+    string clientCertificatePassword?;
 };
 
 public type ErrorResponse_reasons record {
@@ -17521,6 +17654,8 @@ public type POSTPublicEmailTemplateRequest record {
     # 
     # You can also embed HTML tags if `isHtml` is `true`.
     string emailBody;
+    # Container for custom email headers. Each custom email header consists of a header name and a header value.
+    record {|string...;|} emailHeaders?;
     # The email subject. You can add merge fields in the email subject using angle brackets or double curly brackets. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Events_and_Notifications/Create_Email_Templates/A_Merge_field_syntax_for_email_templates" target="_blank">Merge field syntax for email templates</a>.
     string emailSubject;
     # The endcode type of the email body.
@@ -17763,7 +17898,7 @@ public type ChangePlanChargeOverride record {
     # **Note:** This field is available when the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Manage_subscription_transactions/Orders/Standalone_Orders/AA_Overview_of_Standalone_Orders" target="_blank">Standalone Orders</a> feature and the <a href="https://knowledgecenter.zuora.com/Zuora_Revenue/Zuora_Billing_-_Revenue_Integration" target="_blank">Billing - Revenue Integration</a> or <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Enable_Order_to_Revenue/Order_to_Revenue_introduction/AA_Overview_of_Order_to_Revenue" target="_blank">Order to Revenue</a> feature are enabled.
     string adjustmentRevenueAccountingCode?;
     # Billing information about the charge.
-    ChangePlanChargeOverride_billing billing?;
+    PreviewOrderChargeOverride_billing billing?;
     # The chargeModel of a standalone charge.
     # 
     # 
@@ -18007,6 +18142,8 @@ public type POSTCreateOrUpdateEmailTemplateRequestFormat record {
     # 
     # You can also embed HTML tags if `isHtml` is `true`.
     string emailBody;
+    # Container for custom email headers. Each custom email header consists of a header name and a header value.
+    record {|string...;|} emailHeaders?;
     # The email subject. You can add merge fields in the email subject using angle brackets or double curly brackets. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Events_and_Notifications/Create_Email_Templates/A_Merge_field_syntax_for_email_templates" target="_blank">Merge field syntax for email templates</a>.
     string emailSubject;
     # The endcode type of the email body.
@@ -19197,8 +19334,18 @@ public type UpdateEInvoicingServiceProviderRequest record {
     # Whether the e-invoicing service provider's configuration is intended for testing. 
     # 
     # - If you set this field to `true`, requests are directed to the testing integration endpoints.
-    # If you set this field to `false`, requests are directed to the production integration endpoints.
+    # - If you set this field to `false`, requests are directed to the production integration endpoints.
     boolean test?;
+    # The API key is used to authenticate the e-invoicing service provider's requests.
+    string apiKey?;
+    # The secret key is used to authenticate the e-invoicing service provider's requests.
+    string secretKey?;
+    # The client certificate is used to authenticate the e-invoicing service provider's requests, which should be in base64 encoded format.
+    string clientCertificate?;
+    # The client certificate type is used to specify the type of the client certificate. 
+    string clientCertificateType?;
+    # The client certificate password is the password to protect the client certificate.
+    string clientCertificatePassword?;
 };
 
 # Container for tax exempt information, used to establish the tax exempt status of a customer account.
@@ -20862,6 +21009,50 @@ public type PUTSubscriptionPatchSpecificVersionRequestType_charges record {
 public type DiscountItemObjectCustomFields record {
 };
 
+public type POSTBulkPdfGenerationJobResponseType record {
+    *CommonResponse;
+    # Unique Id for the Job Triggered.
+    string jobId?;
+    # Collection of Ids that are not valid. 
+    # 
+    #  Id is considered to be invalid if,
+    #   
+    #   * Billing Document Id doesn't exist in the database for the corresponding Billing Document Type
+    #   * generateMissingPDF property is false in the Job Request and Valid PDF doesn't exist for the Billing Document Id
+    string[] invalidIds?;
+};
+
+public type PreviewExistingSubscriptionInvoiceItemResult record {
+    # Service start date as yyyy-mm-dd. If the charge is a one-time fee, this is the date of that charge.
+    string serviceStartDate?;
+    # End date of the service period for this item, i.e., the last day of the period, as yyyy-mm-dd.
+    string serviceEndDate?;
+    # Invoice amount minus tax.
+    decimal amountWithoutTax?;
+    # The tax amount of the invoice item.
+    decimal taxAmount?;
+    # Description of the charge.
+    string chargeDescription?;
+    # Name of the charge.
+    string chargeName?;
+    # Available when the `chargeNumber` field was specified in the request or when the order is amending an existing subscription.
+    string chargeNumber?;
+    # Name of the product.
+    string productName?;
+    # The ID of the product rate plan charge.
+    string productRatePlanChargeId?;
+    # The processing type of the invoice item.
+    "Charge"|"Discount"|"Tax" processingType?;
+    # The unit price of the charge.
+    decimal unitPrice?;
+    # The quantity of the charge.
+    decimal quantity?;
+    # The unit of measure of the charge.
+    string? unitOfMeasure?;
+    # Container for discount details.
+    PreviewExistingSubscriptionDiscountDetails[] discountDetails?;
+};
+
 public type GETPaymentMethodResponseGooglePayForAccount record {
     # This field is only available for Google Pay payment methods.
     string googleBIN?;
@@ -21308,6 +21499,61 @@ public type PutReverseInvoiceResponseType_creditMemo record {
     string id?;
 };
 
+public type DataBackfillJob record {
+    # Job ID
+    string id?;
+    # The data backfill job type
+    DataBackfillJobType importType?;
+    # ID of the uploaded file
+    string uploadedFileId?;
+    # Name of the uploaded file
+    string uploadedFileName?;
+    # URL of the uploaded file. You can download the uploaded file via this url.
+    string uploadedFileUrl?;
+    # Size of the uploaded file
+    string uploadedFileSize?;
+    # Size of the uploaded file, in the `int64` format
+    int inputFileSize?;
+    # Size of the output file. 
+    string outputSize?;
+    # Type of the output file.
+    string outputType?;
+    # Size of the output file, in the `int64` format. 
+    int outputFileSize?;
+    # ID of the output result file that you can download when a data backfill job is completed. 
+    string resultFileId?;
+    # Name of the result file that you can download when a data backfill job is completed
+    string resultFileName?;
+    # URL of the result file that you can download when a data backfill job is completed. You can download the result file via this URL. In the result file, you can see the data that you uploaded and the result for each record in the `Success` column of the file. For the record that fails to be updated, you can see the reason for failure in the `Error Message` column of the file.
+    string resultFileUrl?;
+    # The user who uploads the file
+    string uploadedBy?;
+    # The date and time when the file is uploaded
+    string uploadedOn?;
+    # The date and time when the data backfill action is completed
+    string completedOn?;
+    # The date and time when the data backfill action is started
+    string startedProcessingOn?;
+    # The total count of the data records to backfill
+    int:Signed32 totalCount?;
+    # The count of the data records that failed to be backfilled
+    int:Signed32 failedCount?;
+    # The status of the data backfill job
+    DataBackfillJobStatus status?;
+    # Message for the failure
+    string failureMessage?;
+    # The count of the data records that are being processed
+    int processedCount?;
+    # The count of the data records that are successfully backfilled
+    int successCount?;
+    # The remaining time for the data backfill job, in the `int64` format
+    int remainingTime?;
+    # The remaining time for the data backfill job, in the text format
+    string remainingTimeText?;
+    # The percentage of the completed data records
+    int:Signed32 completedPercentage?;
+};
+
 public type ProxyGetProductRatePlan record {
     # A list of 3-letter currency codes representing active currencies for the product rate plan. 
     # 
@@ -21350,6 +21596,16 @@ public type ProxyGetProductRatePlan record {
     string UpdatedDate?;
     *ProductRatePlanObjectNSFields;
     *ProductRatePlanObjectCustomFields;
+};
+
+# Preview the existing subscription by subscription ID or number.
+public type PreviewExistingSubscriptionRequest record {
+    # The start date of the preview.
+    PreviewStartDate previewStartDate?;
+    # The preview through date.
+    PreviewThroughDate previewThroughDate?;
+    # Container for usage charges.
+    QuantityForUsageCharges[] quantityForUsageCharges?;
 };
 
 public type GETAttachmentResponseType record {
@@ -21403,8 +21659,14 @@ public type GetEInvoicingServiceProviderResponse record {
     # Whether the e-invoicing service provider's configuration is intended for testing. 
     # 
     # - If you set this field to `true`, requests are directed to the testing integration endpoints.
-    # If you set this field to `false`, requests are directed to the production integration endpoints.
+    # - If you set this field to `false`, requests are directed to the production integration endpoints.
     boolean test?;
+    # The API key is used to authenticate the e-invoicing service provider's requests.
+    string apiKey?;
+    # The client certificate is used to authenticate the e-invoicing service provider's requests, which should be in base64 encoded format.
+    string clientCertificate?;
+    # The client certificate type is used to authenticate the e-invoicing service provider's requests. 
+    string clientCertificateType?;
 };
 
 public type ExpandedOrderLineItem record {|
@@ -21606,8 +21868,6 @@ public type ChargeOverride_pricing record {
     # Pricing information about a one-time charge that uses the "volume pricing" charge model. In this charge model, the charge has a variable price per unit, depending on how many units are purchased.
     OneTimeVolumePricingOverride oneTimeVolume?;
     # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
     RecurringDeliveryPricingOverride recurringDelivery?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     RecurringFlatFeePricingOverride recurringFlatFee?;
@@ -21846,6 +22106,10 @@ public type CreditMemoFromChargeDetailType record {
     # 
     # **Note**: This field is not available if you set the `zuora-version` request header to `257.0` or later [available versions](https://developer.zuora.com/api-references/api/overview/#section/API-Versions/Minor-Version).
     string chargeId;
+    # The flag to exclude the credit memo item from revenue accounting.
+    # 
+    # **Note**: This field is only available if you have the Billing - Revenue Integration feature enabled.
+    boolean excludeItemBillingFromRevenueAccounting = false;
     # Comments about the product rate plan charge.
     # 
     # **Note**: This field is not available if you set the `zuora-version` request header to `257.0` or later [available versions](https://developer.zuora.com/api-references/api/overview/#section/API-Versions/Minor-Version).
@@ -22839,8 +23103,6 @@ public type CreateOrderPricingUpdate record {
     # Pricing information about a discount charge.
     DiscountPricingUpdate discount?;
     # This field is only available if you have the Delivery Pricing charge model enabled.
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
     RecurringDeliveryPricingUpdate recurringDeliveryBased?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     RecurringFlatFeePricingUpdate recurringFlatFee?;
@@ -23042,6 +23304,12 @@ public type GetEInvoicingBusinessRegionResponse record {
     string? phoneNumber?;
     # The short code that can identify the business address.
     string postalCode?;
+    # Container for e-invoicing response field mappings that map values from Sovos response data to fields on the EInvoiceData object in Zuora. Each response field mapping consists of a field name and a field path.
+    # 
+    # Note that this field is applicable only to the Sovos service provider.
+    # 
+    # For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/E-Invoicing/B_Configure_the_E-Invoicing_feature/Configure_e-invoicing_response_field_mappings" target="_blank">Configure e-invoicing response field mappings</a>.
+    record {|string...;|} responseMapping?;
     # The unique ID of the e-invoicing service provider that is associated to the business region.
     string serviceProviderId?;
     # The name of the state or province where the business is located.
@@ -23630,7 +23898,10 @@ public type PostBillingPreviewRunParam record {
     GETProductType_organizationLabels[] organizationLabels?;
     # The saving options. The default value is `Csv`.
     # 
-    # To compare the current billing preview run result with a specified billing preview run result and store the difference in the database, you must set the `storageOption` field to `Database`. **Note**: This feature is in the **Early Adopter** phase. If you want to use the feature, submit a request at <a href="http://support.zuora.com/" target="_blank">Zuora Global Support</a>.
+    # To compare the current billing preview run result with a specified billing preview run result and store the difference in the database, you must set the `storageOption` field to `Database`. For more information, see [Billing Preview Run Result data source](https://knowledgecenter.zuora.com/Zuora_Central_Platform/Reporting/D_Data_Sources_and_Exports/C_Data_Source_Reference/Billing_Preview_Run_Result_data_source).
+    # 
+    # 
+    # **Note**: This feature is in the **Early Adopter** phase. If you want to use the feature, submit a request at <a href="http://support.zuora.com/" target="_blank">Zuora Global Support</a>.
     "Csv"|"Database" storageOption?;
     # Specify this field to `yes` to compare the current billing preview run result with a specified billing preview run result and store the difference in the database. You can view the difference in the Billing Preview Run Result Difference data source. **Note**: This feature is in the **Early Adopter** phase. If you want to use the feature, submit a request at <a href="http://support.zuora.com/" target="_blank">Zuora Global Support</a>.
     # 
@@ -24372,6 +24643,8 @@ public type ProxyModifyProductRatePlanCharge record {
     # Other options might also be avaliable depending on 
     # the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Enable_Order_to_Revenue/Configure_revenue_settings/Configure_revenue_recognition_policy" target="_blank">revenue recognition policy configuration</a> in the Zuora Billing UI.
     # 
+    # To use this field, you must set the `X-Zuora-WSDL-Version` request header to 140 or higher. Otherwise, an error occurs.
+    # 
     # **Note**: This field is only available if you have the Order to Revenue feature enabled. 
     "Upon Billing Document Posting Date"|"Upon Order Activation Date" RevenueRecognitionTiming?;
     # Specifies the type of revenue amortization method.
@@ -24379,6 +24652,8 @@ public type ProxyModifyProductRatePlanCharge record {
     # Predefined options are listed as enum values in this API Reference. 
     # Other options might also be avaliable depending on 
     # the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Enable_Order_to_Revenue/Configure_revenue_settings/Configure_revenue_recognition_policy" target="_blank">revenue recognition policy configuration</a> in the Zuora Billing UI.
+    # 
+    # To use this field, you must set the `X-Zuora-WSDL-Version` request header to 140 or higher. Otherwise, an error occurs.
     # 
     # **Note**: This field is only available if you have the Order to Revenue feature enabled. 
     "Immediate"|"Ratable Using Start And End Dates" RevenueAmortizationMethod?;
@@ -24541,6 +24816,17 @@ public type ProxyModifyProductRatePlanCharge record {
     string Formula?;
     *ProductRatePlanChargeObjectNSFields;
     *ProductRatePlanChargeObjectCustomFields;
+};
+
+public type PutCascadingPaymentMethodsConfigurationRequest record {
+    # `true` indicates that you have collected consent from your customer to use the Cascading Payment Method feature. `false` indicates the consent was not collected and the Cascading Payment Method feature is not enabled.
+    # 
+    # The `priorities` field can be specified only if `consent` is `true`.
+    boolean consent?;
+    # Container for the priority configuration of payment methods. You can add up to three payment methods to this container. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Payments/Payment_Methods/B2_Cascade_payment_methods" target="_blank">Cascade payment methods</a>.
+    # 
+    # `priorities` is required if `consent` is `true`.
+    PutCascadingPaymentMethodsConfigurationRequest_priorities[] priorities?;
 };
 
 public type ProxyCreateUsage record {
@@ -25924,6 +26210,16 @@ public type OrderActionRatePlanRecurringVolumePricingOverride record {
     OrderActionRatePlanChargeTier[] tiers?;
 };
 
+public type PutCascadingPaymentMethodsConfigurationRequest_priorities record {
+    # The ID of a payment method.
+    string paymentMethodId;
+    # The order of the payment method in the priority list. For example, `1` indicates the payment method is the first one in the priority list, and `2` indicates it is the second.
+    # 
+    # The first payment method in the priority list will be the default payment method of the customer account.
+    @constraint:Int {minValue: 1}
+    int 'order;
+};
+
 # Specifies when a charge becomes active.
 public type CreateOrderTriggerParams record {
     # Duration of the discount charge in days, weeks, months, or years, depending on the value of the `startPeriodsType` field. Only applicable if the value of the `startDatePolicy` field is `FixedPeriodAfterApplyToChargeStartDate`.
@@ -26383,8 +26679,8 @@ public type PreviewOrderChargeOverride_billing record {
     "DefaultFromCustomer"|"SpecificDayofMonth"|"SubscriptionStartDay"|"ChargeTriggerDay"|"SpecificDayofWeek" billCycleType?;
     # Billing frequency of the charge. The value of this field controls the duration of each billing period.
     # 
-    # If the value of this field is `Specific_Months` or `Specific_Weeks`, use the `specificBillingPeriod` field to specify the duration of each billing period.
-    "Month"|"Quarter"|"Semi_Annual"|"Annual"|"Eighteen_Months"|"Two_Years"|"Three_Years"|"Five_Years"|"Specific_Months"|"Subscription_Term"|"Week"|"Specific_Weeks" billingPeriod?;
+    # If the value of this field is `Specific_Days`, `Specific_Months` or `Specific_Weeks`, use the `specificBillingPeriod` field to specify the duration of each billing period.
+    "Month"|"Quarter"|"Semi_Annual"|"Annual"|"Eighteen_Months"|"Two_Years"|"Three_Years"|"Five_Years"|"Specific_Months"|"Subscription_Term"|"Week"|"Specific_Weeks"|"Specific_Days" billingPeriod?;
     # Specifies how Zuora determines when to start new billing periods. You can use this field to align the billing periods of different charges.
     # 
     # * `AlignToCharge` - Zuora starts a new billing period on the first billing day that falls on or after the date when the charge becomes active.
@@ -26411,8 +26707,6 @@ public type POSTDecryptionType record {
 };
 
 # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-# 
-# **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. If you want to join this early adopter program, submit a request at <a href="http://support.zuora.com/"target="_blank">Zuora Global Support</a>.
 public type OrderActionRatePlanRecurringDeliveryPricingOverride record {
     *OrderActionRatePlanPriceChangeParams;
     DeliveryScheduleParams deliverySchedule?;
@@ -27039,11 +27333,8 @@ public type SubmitBatchQueryRequest record {
     # Specify the source this aggregate query runs against:
     # 
     # * `LIVE` represents the live transactional databases at Zuora (Data Query Live).
-    # 
-    # * `WAREHOUSE` represents Zuora Warehouse, which has better performance and fewer limitations than the live transactional database. This option is available only if you have the Zuora Warehouse feature enabled in your tenant. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Zuora_Warehouse/A_Zuora_Warehouse_overview" target="_blank">Zuora Warehouse</a>. <br>If this option is selected, you can specify warehouse size in `warehouseSize`.
-    # 
     # If this field is not specified, the default value `LIVE` will be used.
-    "LIVE"|"WAREHOUSE" sourceData?;
+    "LIVE" sourceData?;
     # When this optional flag is set to `true` the request will use object and field API names for the CSV header output instead of the field labels. Data integration projects should set `useQueryLabels` to `true` so that API names remain the same.
     # 
     # By default `useQueryLabels` is `false`, so that output CSV headers display the more user-friendly object and field labels. 
@@ -27056,10 +27347,6 @@ public type SubmitBatchQueryRequest record {
     # 
     # See <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/AB_Aggregate_Query_API/BA_Stateless_and_Stateful_Modes" target="_blank">Stateless and stateful modes</a> for more information.
     float version?;
-    # Specify the size of Zuora Warehouse. This field is available only if the `sourceData` is `WAREHOUSE`.
-    # 
-    # If this field is not specified or set to `NULL`, the default value `xsmall` will be used.
-    "xsmall"|"NULL" warehouseSize?;
 };
 
 # Container for custom fields of a Fulfillment Item object.
@@ -27082,6 +27369,31 @@ public type CreditCard record {
     int expirationYear?;
     # CVV or CVV2 security code of the card. To ensure PCI compliance, Zuora does not store the value of this field.
     string securityCode?;
+};
+
+public type POSTBulkPdfGenerationJobRequestType record {
+    # An array that contains a collection of objects where each object contains billing document type and their IDs.
+    DocumentList[] documents;
+    # The prefix part of output file name(s). The response will include multiple file URLs. The number of zip files generated corresponds to the number of invoice IDs. Each zip file contains up to 1000 document IDs.
+    # Eg: 
+    #   if fileName is "all-invoices-posted-jan-2024" then fileURL(s) will start with the file name followed by an underscore and a number. For instance, all-invoices-posted-jan-2024_1.zip, all-invoices-posted-jan-2024_2.zip, and so on.
+    @constraint:String {maxLength: 32}
+    string fileName;
+    # The name of the job.
+    @constraint:String {maxLength: 32}
+    string name?;
+    # The format of the index file. It contains the metadata about the files and their contents.
+    "JSON"|"CSV" indexFileFormat;
+    # This flag controls the behavior of whether to generate PDF(s) for billing documents that do not already have one.
+    # 
+    #   - setting it to true indicates service would go through the provided document ID list, find the billing documents that do not have a generated PDF,
+    #   generate them all at once, and then proceed to the zipping process.
+    # 
+    #   - setting it to false indicates service would go through the provided document ID list, find the billing documents that do not have a generated PDF,
+    #   mark them as Invalid, and skip them from the zipping process. IDs marked as invalid will be included in the response.
+    # 
+    # The default value is false.
+    boolean generateMissingPDF?;
 };
 
 # **Note:** This field has been deprecated, and is currently available only for backward compatibility. Use the `paymentMethod` field instead to create a payment method associated with this account.
@@ -27175,6 +27487,8 @@ public type PUTPublicEmailTemplateRequest record {
     # 
     # User can also embed html tags if `isHtml` is `true`.
     string emailBody?;
+    # Container for custom email headers. Each custom email header consists of a header name and a header value.
+    record {|string...;|} emailHeaders?;
     # The email subject. You can add merge fields in the email subject using angle brackets or double curly brackets. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Central_Platform/Events_and_Notifications/Create_Email_Templates/A_Merge_field_syntax_for_email_templates" target="_blank">Merge field syntax for email templates</a>.
     string emailSubject?;
     # The endcode type of the email body.
@@ -28452,6 +28766,9 @@ public type GETAccountType_billingAndPayment record {
     boolean invoiceDeliveryPrefsEmail?;
     # Whether the customer wants to receive printed invoices, such as through postal mail.
     boolean invoiceDeliveryPrefsPrint?;
+    # `true` indicates the consent from your customer to use the Cascading Payment Method feature was collected. 
+    # `false` indicates the consent was not collected and the Cascading Payment Method feature is not enabled.
+    boolean paymentMethodCascadingConsent?;
     # The name of the payment gateway instance. If null or left unassigned, the Account will use the Default Gateway.
     string paymentGateway?;
     # A payment-terms indicator defined in the web-based UI administrative settings, e.g., "Net 30".
@@ -28543,6 +28860,11 @@ public type PaymentScheduleCommonResponse record {
 public type FilterRuleParameterValues record {|
     string...;
 |};
+
+public type Jobs_jobId_body record {
+    # `Stopping` is currently the only allowed value.
+    "Stopping" status;
+};
 
 public type Workflows_workflow_id_body record {
     # The id of a version. This version will then be set to the active version of the workflow definition.
@@ -28778,14 +29100,35 @@ public type SettingItemHttpOperation record {
     string url?;
 };
 
+public type Inline_response_200_12 record {
+    *CommonResponse;
+    DataBackfillJob job?;
+};
+
+public type Inline_response_200_13 record {
+    *CommonResponse;
+    DataBackfillJob[] jobs?;
+};
+
 public type ListAllSettingsResponse record {
     SettingItemWithOperationsInformation[] settings?;
+};
+
+public type Inline_response_200_10 record {
+    *CommonResponse;
+    GETBookingDateJobResponse job?;
 };
 
 public type TransferPaymentType record {
     # The ID of the customer account that the payment is transferred to.
     # Unassign a payment by setting this field to an empty string. This will automatically transfer the payment to a null account.
     string accountId?;
+};
+
+public type Inline_response_200_11 record {
+    *CommonResponse;
+    # String of 32 characters that identifies the data backfill job. The id is generated before the job is processed. You can use the id to retrieve the data backfill job result.
+    string jobId?;
 };
 
 # File IDs of the reports available for the accounting period. You can retrieve the reports by specifying the file ID in a [Get Files](https://developer.zuora.com/api-references/api/operation/GET_Files) REST API call.
@@ -29231,6 +29574,13 @@ public type GETAdjustmentByIdResponseType record {
     string subscriptionNumber?;
 };
 
+public type DocumentList record {
+    # The type of billing document.
+    "Invoice"|"CreditMemo"|"DebitMemo" docType?;
+    # The collection of billing document IDs.
+    string[] objectIds?;
+};
+
 # Specifies when a charge becomes inactive.
 public type EndConditions record {
     # Condition for the charge to become inactive.
@@ -29662,6 +30012,37 @@ public type SettingsBatchResponse record {
     SettingValueResponseWrapper[] responses?;
 };
 
+public type PreviewExistingSubscriptionCreditMemoItemResult record {
+    # Service start date as yyyy-mm-dd. If the charge is a one-time fee, this is the date of that charge.
+    string serviceStartDate?;
+    # End date of the service period for this item, i.e., the last day of the period, as yyyy-mm-dd.
+    string serviceEndDate?;
+    # Credit memo amount minus tax.
+    decimal amountWithoutTax?;
+    # The tax amount of the credit memo item.
+    decimal taxAmount?;
+    # Description of the charge.
+    string chargeDescription?;
+    # Name of the charge.
+    string chargeName?;
+    # Available when the `chargeNumber` field was specified in the request or when the order is amending an existing subscription.
+    string chargeNumber?;
+    # Name of the product.
+    string productName?;
+    # The ID of the product rate plan charge.
+    string productRatePlanChargeId?;
+    # The processing type of the credit memo item.
+    "Charge"|"Discount"|"Tax" processingType?;
+    # The unit price of the charge.
+    decimal unitPrice?;
+    # The quantity of the charge.
+    decimal quantity?;
+    # The unit of measure of the charge.
+    string? unitOfMeasure?;
+    # Container for discount details.
+    PreviewExistingSubscriptionDiscountDetails[] discountDetails?;
+};
+
 public type GetDataQueryJobResponse record {
     # A data query job.
     DataQueryJob data?;
@@ -29697,7 +30078,7 @@ public type CreateOrderChargeOverride record {
     # **Note:** This field is available when the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Manage_subscription_transactions/Orders/Standalone_Orders/AA_Overview_of_Standalone_Orders" target="_blank">Standalone Orders</a> feature and the <a href="https://knowledgecenter.zuora.com/Zuora_Revenue/Zuora_Billing_-_Revenue_Integration" target="_blank">Billing - Revenue Integration</a> or <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Enable_Order_to_Revenue/Order_to_Revenue_introduction/AA_Overview_of_Order_to_Revenue" target="_blank">Order to Revenue</a> feature are enabled.
     string adjustmentRevenueAccountingCode?;
     # Billing information about the charge.
-    ChangePlanChargeOverride_billing billing?;
+    PreviewOrderChargeOverride_billing billing?;
     # The chargeModel of a standalone charge.
     # 
     # 
@@ -29940,6 +30321,25 @@ public type BillRunScheduleRequestType record {
     # 
     # This field is required if you set `repeatType` field to `Weekly`.
     ("Mon"|"Tue"|"Wed"|"Thu"|"Fri"|"Sat"|"Sun")[] weeklyOnDay?;
+};
+
+public type GETBulkpdfGenerationJobResponseType record {
+    # Unique Id for the Triggered Job
+    string jobId?;
+    # Name of the Job provided during the POST request of the Job
+    string jobName?;
+    # Status of the job
+    "Submitted"|"Executing"|"Completed"|"Error"|"Aborted"|"Cancelled" status?;
+    # Status of the Current Step that the Job is undergoing
+    "JobCreated"|"TasksCreated"|"GenerateMissPDF"|"PdfToZip"|"PostProcessing" stepStatus?;
+    # Collection of S3 Pre-Signed URL(s) that can be downloaded
+    string[] fileUrls?;
+    # Job Created Time
+    string createdOn?;
+    # Id of the user who created the job
+    string createdBy?;
+    # Returns `true` if the request was processed successfully.
+    boolean success?;
 };
 
 # To create tokenized BACS payment methods on Stripe v2, pass in the existing token information through the fields in this container.
@@ -31091,11 +31491,11 @@ public type PUTAccountTypeSoldToContact record {
     # Fax phone number, 40 characters or less.
     string fax?;
     # First name, 100 characters or less.
-    string firstName;
+    string firstName?;
     # Home phone number, 40 characters or less.
     string homePhone?;
     # Last name, 100 characters or less.
-    string lastName;
+    string lastName?;
     # Mobile phone number, 40 characters or less.
     string mobilePhone?;
     # Nickname for this contact
@@ -31148,8 +31548,6 @@ public type PreviewOrderChargeOverride_pricing record {
     # Pricing information about a one-time charge that uses the "volume pricing" charge model. In this charge model, the charge has a variable price per unit, depending on how many units are purchased.
     OneTimeVolumePricingOverride oneTimeVolume?;
     # Pricing information about a recurring charge that uses the Delivery Pricing charge model. In this charge model, the charge has a fixed price. This field is only available if you have the Delivery Pricing charge model enabled.
-    # 
-    # **Note**: The Delivery Pricing charge model is in the **Early Adopter** phase. We are actively soliciting feedback from a small set of early adopters before releasing it as generally available. To manage and access this feature through the self-service interface, see [Enable billing features by yourself](https://knowledgecenter.zuora.com/Zuora_Billing/Bill_your_customers/Billing_Settings/Manage_Features) in the Knowledge Center. You can check **Delivery Pricing** in **Billing Settings** > **Enable Charge Types / Models**.
     RecurringDeliveryPricingOverride recurringDeliveryBased?;
     # Pricing information about a recurring charge that uses the "flat fee" charge model. In this charge model, the charge has a fixed price.
     RecurringFlatFeePricingOverride recurringFlatFee?;
@@ -31171,6 +31569,13 @@ public type PreviewOrderChargeOverride_pricing record {
     UsageTieredWithOveragePricingOverride usageTieredWithOverage?;
     # Pricing information about a usage charge that uses the "volume pricing" charge model. In this charge model, the charge has a variable price per unit, depending on how many units are consumed.
     UsageVolumePricingOverride usageVolume?;
+};
+
+public type PreviewExistingSubscriptionDiscountDetails record {
+    # The charge number of the discount.
+    string discountChargeNumber?;
+    # The discount rate.
+    decimal discountRate?;
 };
 
 public type RefundCreditMemoItemType record {
@@ -32062,6 +32467,17 @@ public type CreatePMPayPalEC record {
     string email?;
     *PaymentMethodCommonFields;
     *PaymentMethodObjectCustomFields;
+};
+
+public type Databackfill_jobs_body record {
+    DataBackfillJob 'type;
+    # A file containing the data about the fields that you want to backfill. This file must be a `.csv` file or a zipped `.csv` file. The maximum file size is 4 MB. The data in the file must be formatted according to the data backfill action type that you want to perform.
+    # 
+    # You can download a file template to view all fields supported for your data backfill. For more information, see <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Enable_Order_to_Revenue/Configure_revenue_settings/Perform_data_backfill#Perform_data_backfill" target="_blank">Perform data backfill</a>.
+    record {byte[] fileContent; string fileName;} file;
+    # An MD5 checksum that is used to validate the integrity of the uploaded file.
+    @constraint:String {maxLength: 32, minLength: 32}
+    string checksum?;
 };
 
 # Information about the first term of the subscription.
@@ -33633,6 +34049,13 @@ public type PostCustomObjectRecordsRequest record {
     boolean allowPartialSuccess = false;
     # A list of custom object records to be created
     CustomObjectRecordWithOnlyCustomFields[] records;
+};
+
+public type QuantityForUsageCharges record {
+    # The ID of the subscription charge.
+    string chargeId?;
+    # The quantity of the subscription charge.
+    decimal quantity?;
 };
 
 public type PostBatchInvoiceItemResponse record {
@@ -35587,6 +36010,9 @@ public type GETAccountSummaryTypeBasicInfo record {
     # 
     # **Note**: This field is available only if you have the <a href="https://knowledgecenter.zuora.com/Zuora_Billing/Manage_customer_accounts/AAA_Overview_of_customer_accounts/Reseller_Account" target="_blank">Reseller Account</a> feature enabled.
     boolean partnerAccount?;
+    # `true` indicates the consent from your customer to use the Cascading Payment Method feature was collected. 
+    # `false` indicates the consent was not collected and the Cascading Payment Method feature is not enabled.
+    boolean paymentMethodCascadingConsent?;
     # The purchase order number provided by your customer for services, products, or both purchased.
     string purchaseOrderNumber?;
     # Account status; possible values are: `Active`, `Draft`, `Canceled`.
@@ -37964,6 +38390,10 @@ public type DebitMemoFromChargeDetailType record {
     # 
     # **Note**: This field is not available if you set the `zuora-version` request header to `257.0` or later [available versions](https://developer.zuora.com/api-references/api/overview/#section/API-Versions/Minor-Version).
     string chargeId;
+    # The flag to exclude the debit memo item from revenue accounting.
+    # 
+    # **Note**: This field is only available if you have the Billing - Revenue Integration feature enabled.            
+    boolean excludeItemBillingFromRevenueAccounting = false;
     # Comments about the product rate plan charge.
     # 
     # **Note**: This field is not available if you set the `zuora-version` request header to `257.0` or before.
@@ -39043,6 +39473,25 @@ public type GETPaymentPartsCollectionType record {
     boolean success?;
 };
 
+public type PreviewExistingSubscriptionResultInvoices record {
+    # The invoice number.
+    string invoiceNumber?;
+    # Invoice amount.
+    decimal amount?;
+    # Invoice amount minus tax.
+    decimal amountWithoutTax?;
+    # The tax amount of the invoice.
+    decimal taxAmount?;
+    # Date through which to calculate charges if an invoice is generated, as yyyy-mm-dd.
+    string targetDate?;
+    # The container for invoice items.
+    PreviewExistingSubscriptionInvoiceItemResult[] invoiceItems?;
+    # The status of the invoice.
+    "Draft"|"Posted" status?;
+    # Indicates whether the invoice information is from an existing invoice.
+    boolean isFromExistingInvoice?;
+};
+
 public type FulfillmentCommon record {
     # The target date for the Fulfillment to be picked up by bill run for billing.
     string billTargetDate?;
@@ -39993,6 +40442,19 @@ public type GETRefundType record {
     *RefundObjectCustomFields;
 };
 
+# The preview through date.
+public type PreviewThroughDate record {
+    # The options on how the preview through date is calculated. 
+    # - If you set this field to `nextBillingPeriods`, you must specify the number of billing periods to preview in the `nextBillingPeriods` field.
+    # - If you set this field to `endOfTerm`, the preview through date is the end date of the subscription term.
+    # - If you set this field to `specificDate`, you must specify a specific date in the `specificDate` field. The date must be in the format `yyyy-mm-dd`.
+    PreviewThruDatePolicy previewThruDatePolicy?;
+    # The number of billing periods to preview. Required if `previewThruDatePolicy` is `nextBillingPeriods`.
+    decimal nextBillingPeriods?;
+    # The specific date for the preview start date. Required if `previewThruDatePolicy` is `specificDate`.
+    string specificDate?;
+};
+
 public type POSTPaymentScheduleRequest record {
     # ID of the customer account the payment schedule belongs to.
     # 
@@ -40555,39 +41017,6 @@ public type OrderActionRatePlanOneTimePerUnitPricingOverride record {
     decimal quantity?;
 };
 
-# Billing information about the charge.
-public type ChangePlanChargeOverride_billing record {
-    # Day of the month that each billing period begins on. Only applicable if the value of the `billCycleType` field is `SpecificDayofMonth`.
-    @constraint:Int {minValue: 0, maxValue: 31}
-    int billCycleDay?;
-    # Specifies how Zuora determines the day that each billing period begins on.
-    # 
-    #   * `DefaultFromCustomer` - Each billing period begins on the bill cycle day of the account that owns the subscription.
-    #   * `SpecificDayofMonth` - Use the `billCycleDay` field to specify the day of the month that each billing period begins on.
-    #   * `SubscriptionStartDay` - Each billing period begins on the same day of the month as the start date of the subscription.
-    #   * `ChargeTriggerDay` - Each billing period begins on the same day of the month as the date when the charge becomes active.
-    #   * `SpecificDayofWeek` - Use the `weeklyBillCycleDay` field to specify the day of the week that each billing period begins on.
-    "DefaultFromCustomer"|"SpecificDayofMonth"|"SubscriptionStartDay"|"ChargeTriggerDay"|"SpecificDayofWeek" billCycleType?;
-    # Billing frequency of the charge. The value of this field controls the duration of each billing period.
-    # 
-    # If the value of this field is `Specific_Months` or `Specific_Weeks`, use the `specificBillingPeriod` field to specify the duration of each billing period.
-    "Month"|"Quarter"|"Semi_Annual"|"Annual"|"Eighteen_Months"|"Two_Years"|"Three_Years"|"Five_Years"|"Specific_Months"|"Subscription_Term"|"Week"|"Specific_Weeks"|"Specific_Days" billingPeriod?;
-    # Specifies how Zuora determines when to start new billing periods. You can use this field to align the billing periods of different charges.
-    # 
-    # * `AlignToCharge` - Zuora starts a new billing period on the first billing day that falls on or after the date when the charge becomes active.
-    # * `AlignToSubscriptionStart` - Zuora starts a new billing period on the first billing day that falls on or after the start date of the subscription.
-    # * `AlignToTermStart` - For each term of the subscription, Zuora starts a new billing period on the first billing day that falls on or after the start date of the term.
-    # 
-    # See the `billCycleType` field for information about how Zuora determines the billing day.
-    "AlignToCharge"|"AlignToSubscriptionStart"|"AlignToTermStart" billingPeriodAlignment?;
-    # Specifies whether to invoice for a billing period on the first day of the billing period (billing in advance) or the first day of the next billing period (billing in arrears).
-    "IN_ADVANCE"|"IN_ARREARS" billingTiming?;
-    # Duration of each billing period in months or weeks, depending on the value of the `billingPeriod` field. Only applicable if the value of the `billingPeriod` field is `Specific_Months` or `Specific_Weeks`.
-    int specificBillingPeriod?;
-    # Day of the week that each billing period begins on. Only applicable if the value of the `billCycleType` field is `SpecificDayofWeek`.
-    "Sunday"|"Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday" weeklyBillCycleDay?;
-};
-
 public type ChargePreviewMetrics_tcv record {
     # Always equals to discountTcb.
     decimal discount?;
@@ -40693,6 +41122,39 @@ public type CustomObjectBulkJobResponse record {
     # - `failed` - The job was unable to complete. You can use [List all errors for a custom object bulk job](https://developer.zuora.com/api-references/api/operation/GET_CustomObjectBulkJobErrors) to list the errors.
     # - `cancelled` - The job was cancelled by the server.
     "accepted"|"pending"|"in_progress"|"completed"|"failed"|"cancelled" status?;
+};
+
+# Billing information about the charge.
+public type OrderActionRatePlanChargeOverride_billing record {
+    # Day of the month that each billing period begins on. Only applicable if the value of the `billCycleType` field is `SpecificDayofMonth`.
+    @constraint:Int {minValue: 0, maxValue: 31}
+    int billCycleDay?;
+    # Specifies how Zuora determines the day that each billing period begins on.
+    # 
+    #   * `DefaultFromCustomer` - Each billing period begins on the bill cycle day of the account that owns the subscription.
+    #   * `SpecificDayofMonth` - Use the `billCycleDay` field to specify the day of the month that each billing period begins on.
+    #   * `SubscriptionStartDay` - Each billing period begins on the same day of the month as the start date of the subscription.
+    #   * `ChargeTriggerDay` - Each billing period begins on the same day of the month as the date when the charge becomes active.
+    #   * `SpecificDayofWeek` - Use the `weeklyBillCycleDay` field to specify the day of the week that each billing period begins on.
+    "DefaultFromCustomer"|"SpecificDayofMonth"|"SubscriptionStartDay"|"ChargeTriggerDay"|"SpecificDayofWeek" billCycleType?;
+    # Billing frequency of the charge. The value of this field controls the duration of each billing period.
+    # 
+    # If the value of this field is `Specific_Months` or `Specific_Weeks`, use the `specificBillingPeriod` field to specify the duration of each billing period.
+    "Month"|"Quarter"|"Semi_Annual"|"Annual"|"Eighteen_Months"|"Two_Years"|"Three_Years"|"Five_Years"|"Specific_Months"|"Subscription_Term"|"Week"|"Specific_Weeks" billingPeriod?;
+    # Specifies how Zuora determines when to start new billing periods. You can use this field to align the billing periods of different charges.
+    # 
+    # * `AlignToCharge` - Zuora starts a new billing period on the first billing day that falls on or after the date when the charge becomes active.
+    # * `AlignToSubscriptionStart` - Zuora starts a new billing period on the first billing day that falls on or after the start date of the subscription.
+    # * `AlignToTermStart` - For each term of the subscription, Zuora starts a new billing period on the first billing day that falls on or after the start date of the term.
+    # 
+    # See the `billCycleType` field for information about how Zuora determines the billing day.
+    "AlignToCharge"|"AlignToSubscriptionStart"|"AlignToTermStart" billingPeriodAlignment?;
+    # Specifies whether to invoice for a billing period on the first day of the billing period (billing in advance) or the first day of the next billing period (billing in arrears).
+    "IN_ADVANCE"|"IN_ARREARS" billingTiming?;
+    # Duration of each billing period in months or weeks, depending on the value of the `billingPeriod` field. Only applicable if the value of the `billingPeriod` field is `Specific_Months` or `Specific_Weeks`.
+    int specificBillingPeriod?;
+    # Day of the week that each billing period begins on. Only applicable if the value of the `billCycleType` field is `SpecificDayofWeek`.
+    "Sunday"|"Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday" weeklyBillCycleDay?;
 };
 
 public type PUTPaymentRunRequest record {

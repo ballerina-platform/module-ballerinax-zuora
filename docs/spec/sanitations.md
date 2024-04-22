@@ -13,11 +13,9 @@ This document records the sanitation done on top of the official OpenAPI specifi
 2. Remove `passthrough[1,2,3,4,5]` and `param_gwOptions_[*option*]` fields from the `POSTRSASignatureType` schema.
     * As the Ballerina OpenAPI tool generates open records for the schemas, users can still use these fields but have to manually define them and set values.
 3. Remove the `type` field from the following schemas as they already inherit the `type` field from the `PaymentMethodCommonFields` schema.
-    * `POSTPaymentMethodRequest`
     * `CreatePaymentMethodCreditCard`
     * `CreatePaymentMethodCCReferenceTransaction`
     * `CreatePaymentMethodACH`
-    * `CreatePaymentMethodSEPA`
     * `CreatePaymentMethodSEPA`
     * `CreatePaymentMethodAutogiro`
     * `CreatePaymentMethodBacs`
@@ -30,6 +28,7 @@ This document records the sanitation done on top of the official OpenAPI specifi
     * `CreatePaymentMethodPayPalAdaptive`
     * `CreatePaymentMethodApplePayAdyen`
     * `CreatePaymentMethodGooglePayChase`
+    * `CreatePaymentMethodGooglePayAdyen`
     * `CreatePaymentMethodBetalingsservice`
 
 ## OpenAPI CLI command
