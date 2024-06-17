@@ -30,7 +30,7 @@ Create an `zuora:Client` object with your domain URL and relevant authentication
 configurable string clientId = ?;
 configurable string clientSecret = ?;
 configurable string tokenUrl = ?;
-configurable string baseUrl = ?;
+configurable string serviceUrl = ?;
 
 zuora:ConnectionConfig configuration = {
     auth: {
@@ -40,7 +40,7 @@ zuora:ConnectionConfig configuration = {
     }
 };
 
-zuora:Client zuora = check new (configuration, baseUrl);
+zuora:Client zuora = check new (configuration, serviceUrl);
 ```
 
 ### Step 3: Invoke the connector operations
